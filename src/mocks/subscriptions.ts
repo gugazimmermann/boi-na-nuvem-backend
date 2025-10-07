@@ -17,7 +17,7 @@ const subscriptions: Subscription[] = [
     planId: 'd6d61b16-8cc0-4e4f-ad5e-4d5e6f7a8b9c',
     type: 'trial',
     value: 0,
-    createdAt: subDays(new Date(), 7), // 7 dias atrás para garantir trial ativo
+    createdAt: subDays(new Date(), 7),
     status: 'active'
   },
   {

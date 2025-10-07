@@ -1,4 +1,3 @@
-// Mock data for users
 export interface User {
   id: string;
   password: string;
