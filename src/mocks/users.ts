@@ -1,5 +1,23 @@
 // Mock data for users
-const users = [
+export interface User {
+  id: string;
+  password: string;
+  name: string;
+  email: string;
+  phone: string;
+  document: string;
+  street: string;
+  number: string;
+  complement: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  country: string;
+  zipCode: string;
+  createdAt: Date;
+}
+
+const users: User[] = [
   {
     id: '550e8400-e29b-41d4-a716-446655440001',
     password: '$2a$10$TR75LAVfgNY9muuvMZFIu.DT16sZcZVWFXYIilY3rW7LTdNcpD6W.', // plain: password123
@@ -138,4 +156,4 @@ const users = [
   }
 ];
 
-module.exports = users;
+export default users;

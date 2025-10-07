@@ -1,4 +1,14 @@
-const plans = [
+export interface Plan {
+  id: string;
+  name: string;
+  price: number;
+  annualPrice: number;
+  description: string;
+  features: string[];
+  isPopular?: boolean;
+}
+
+const plans: Plan[] = [
     {
         id: 'a3a3f8e3-5f8d-4b1c-9a2b-1a2b3c4d5e6f',
         name: 'Intro',
@@ -67,4 +77,4 @@ const plans = [
     }
 ];
 
-module.exports = plans;
+export default plans;

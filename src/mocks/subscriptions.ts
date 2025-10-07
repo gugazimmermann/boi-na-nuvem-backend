@@ -1,6 +1,16 @@
-const { parseISO, subDays } = require('date-fns');
+import { parseISO, subDays } from 'date-fns';
 
-const subscriptions = [
+export interface Subscription {
+  id: string;
+  userId: string;
+  planId: string;
+  type: 'trial' | 'monthly' | 'yearly';
+  value: number;
+  createdAt: Date;
+  status: 'active' | 'inactive' | 'expired';
+}
+
+const subscriptions: Subscription[] = [
   {
     id: 'a1b2c3d4-e5f6-4789-a012-3456789abcde',
     userId: '550e8400-e29b-41d4-a716-446655440001',
@@ -75,8 +85,8 @@ const subscriptions = [
   }
 ];
 
-const getSubscriptionByUserId = (userId) => {
+export const getSubscriptionByUserId = (userId: string): Subscription | undefined => {
   return subscriptions.find(sub => sub.userId === userId);
 };
 
-module.exports = { subscriptions, getSubscriptionByUserId };
+export default subscriptions;
