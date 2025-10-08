@@ -68,6 +68,8 @@ async function bootstrap() {
     .addTag('suppliers', 'Gerenciamento de fornecedores')
     .addTag('buyers', 'Gerenciamento de compradores')
     .addTag('animals', 'Gerenciamento de animais')
+    .addTag('health', 'Health check endpoints')
+    .addTag('metrics', 'Prometheus metrics endpoints')
     .build();
   
   const document = SwaggerModule.createDocument(app, config);
@@ -79,8 +81,11 @@ async function bootstrap() {
   const logger = app.get(WINSTON_MODULE_NEST_PROVIDER);
   logger.log(`Application is running on: http://localhost:${port}`, 'Bootstrap');
   logger.log(`Swagger documentation available at: http://localhost:${port}/docs`, 'Bootstrap');
+  logger.log(`Health check available at: http://localhost:${port}/health`, 'Bootstrap');
+  logger.log(`Prometheus metrics available at: http://localhost:${port}/metrics`, 'Bootstrap');
   logger.log('Security headers configured with Helmet', 'Bootstrap');
   logger.log('Rate limiting configured with Throttler', 'Bootstrap');
   logger.log('Global validation pipe configured with class-validator', 'Bootstrap');
+  logger.log('Prometheus metrics collection enabled', 'Bootstrap');
 }
 bootstrap();
