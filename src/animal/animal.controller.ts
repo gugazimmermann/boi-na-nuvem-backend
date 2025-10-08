@@ -12,8 +12,8 @@ export class AnimalController {
 
   @Get()
   @Throttle({ short: { limit: 20, ttl: 1000 } })
-  @ApiOperation({ summary: 'Obter todos os animais' })
-  @ApiResponse({ status: 200, description: 'Lista de animais retornada com sucesso' })
+  @ApiOperation({ summary: 'Get all animals' })
+  @ApiResponse({ status: 200, description: 'List of animals returned successfully' })
   async getAllAnimals() {
     this.logger.log('GET /animal - Request received', 'getAllAnimals');
     
@@ -28,10 +28,10 @@ export class AnimalController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Obter animal por ID' })
-  @ApiParam({ name: 'id', description: 'ID do animal' })
-  @ApiResponse({ status: 200, description: 'Animal encontrado com sucesso' })
-  @ApiResponse({ status: 404, description: 'Animal não encontrado' })
+  @ApiOperation({ summary: 'Get animal by ID' })
+  @ApiParam({ name: 'id', description: 'Animal ID' })
+  @ApiResponse({ status: 200, description: 'Animal found successfully' })
+  @ApiResponse({ status: 404, description: 'Animal not found' })
   async getAnimalById(@Param('id') id: string) {
     this.logger.log(`GET /animal/${id} - Request received`, 'getAnimalById');
     
@@ -47,9 +47,9 @@ export class AnimalController {
 
   @Post()
   @Throttle({ short: { limit: 5, ttl: 1000 } })
-  @ApiOperation({ summary: 'Criar novo animal' })
-  @ApiResponse({ status: 201, description: 'Animal criado com sucesso' })
-  @ApiResponse({ status: 400, description: 'Dados inválidos' })
+  @ApiOperation({ summary: 'Create new animal' })
+  @ApiResponse({ status: 201, description: 'Animal created successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid data' })
   async createAnimal(@Body() createAnimalDto: any) {
     this.logger.log('POST /animal - Request received', 'createAnimal');
     
@@ -64,10 +64,10 @@ export class AnimalController {
   }
 
   @Put(':id')
-  @ApiOperation({ summary: 'Atualizar animal' })
-  @ApiParam({ name: 'id', description: 'ID do animal' })
-  @ApiResponse({ status: 200, description: 'Animal atualizado com sucesso' })
-  @ApiResponse({ status: 404, description: 'Animal não encontrado' })
+  @ApiOperation({ summary: 'Update animal' })
+  @ApiParam({ name: 'id', description: 'Animal ID' })
+  @ApiResponse({ status: 200, description: 'Animal updated successfully' })
+  @ApiResponse({ status: 404, description: 'Animal not found' })
   async updateAnimal(@Param('id') id: string, @Body() updateAnimalDto: any) {
     this.logger.log(`PUT /animal/${id} - Request received`, 'updateAnimal');
     
@@ -82,10 +82,10 @@ export class AnimalController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Deletar animal' })
-  @ApiParam({ name: 'id', description: 'ID do animal' })
-  @ApiResponse({ status: 200, description: 'Animal deletado com sucesso' })
-  @ApiResponse({ status: 404, description: 'Animal não encontrado' })
+  @ApiOperation({ summary: 'Delete animal' })
+  @ApiParam({ name: 'id', description: 'Animal ID' })
+  @ApiResponse({ status: 200, description: 'Animal deleted successfully' })
+  @ApiResponse({ status: 404, description: 'Animal not found' })
   async deleteAnimal(@Param('id') id: string) {
     this.logger.log(`DELETE /animal/${id} - Request received`, 'deleteAnimal');
     

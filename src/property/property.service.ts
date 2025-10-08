@@ -1,31 +1,33 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ResponseHelper } from '../common/helpers/response.helper';
+import { ApiResponse } from '../common/interfaces/api-response.interface';
 
 @Injectable()
 export class PropertyService {
   private readonly logger = new Logger(PropertyService.name);
 
-  async getAllProperties() {
+  async getAllProperties(): Promise<ApiResponse<any[]>> {
     this.logger.log('Fetching all properties', 'getAllProperties');
-    return { success: true, data: [], count: 0 };
+    return ResponseHelper.successWithCount([], 'Properties retrieved successfully');
   }
 
-  async getPropertyById(id: string) {
+  async getPropertyById(id: string): Promise<ApiResponse<any>> {
     this.logger.log(`Fetching property with id: ${id}`, 'getPropertyById');
-    return { success: true, data: null };
+    return ResponseHelper.successSingle(null, 'Property retrieved successfully');
   }
 
-  async createProperty(createPropertyDto: any) {
+  async createProperty(createPropertyDto: any): Promise<ApiResponse<any>> {
     this.logger.log('Creating new property', 'createProperty');
-    return { success: true, data: createPropertyDto };
+    return ResponseHelper.successSingle(createPropertyDto, 'Property created successfully');
   }
 
-  async updateProperty(id: string, updatePropertyDto: any) {
+  async updateProperty(id: string, updatePropertyDto: any): Promise<ApiResponse<any>> {
     this.logger.log(`Updating property with id: ${id}`, 'updateProperty');
-    return { success: true, data: updatePropertyDto };
+    return ResponseHelper.successSingle(updatePropertyDto, 'Property updated successfully');
   }
 
-  async deleteProperty(id: string) {
+  async deleteProperty(id: string): Promise<ApiResponse<null>> {
     this.logger.log(`Deleting property with id: ${id}`, 'deleteProperty');
-    return { success: true, message: 'Property deleted successfully' };
+    return ResponseHelper.successSingle(null, 'Property deleted successfully');
   }
 }

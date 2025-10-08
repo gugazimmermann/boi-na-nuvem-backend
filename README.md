@@ -61,6 +61,27 @@ npm install
 ```bash
 # Create a .env file in the project root
 PORT=3000
+HOST=http://localhost
+NODE_ENV=development
+
+# Database Configuration
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+DATABASE_USERNAME=postgres
+DATABASE_PASSWORD=password
+DATABASE_NAME=boi_na_nuvem
+
+# JWT Configuration
+JWT_SECRET=your-secret-key
+JWT_EXPIRES_IN=1d
+
+# App Configuration
+APP_TITLE=Boi na Nuvem Backend
+APP_VERSION=0.0.1
+
+# Production Configuration Example
+# HOST=https://boi-na-nuvem-backend.onrender.com
+# NODE_ENV=production
 ```
 
 ## 🚀 Running the Application
@@ -109,7 +130,7 @@ npm run lint
 Interactive API documentation is available via Swagger:
 
 - **Local**: http://localhost:3000/docs
-- **Production**: https://boi-na-nuvem.onrender.com/docs
+- **Production**: https://boi-na-nuvem-backend.onrender.com/docs
 
 ### Main Endpoints
 
@@ -215,8 +236,8 @@ npm run test:e2e
 
 The application is configured for deployment on Render.com:
 
-- **Production URL**: https://boi-na-nuvem.onrender.com
-- **Documentation**: https://boi-na-nuvem.onrender.com/docs
+- **Production URL**: https://boi-na-nuvem-backend.onrender.com
+- **Documentation**: https://boi-na-nuvem-backend.onrender.com/docs
 
 ## 🤝 Contributing
 

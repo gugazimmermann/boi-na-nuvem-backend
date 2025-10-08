@@ -47,9 +47,9 @@ async function bootstrap() {
   
   app.enableCors({
     origin: [
-      'https:
-      'http:
-      'http:
+      'https://localhost:3000',
+      'http://localhost:3000',
+      'http://localhost:3001'
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -58,16 +58,17 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('Boi na Nuvem API')
-    .setDescription('API para gerenciamento de fazendas e animais')
+    .setDescription('API for farm and animal management')
     .setVersion('1.0')
-    .addTag('plans', 'Gerenciamento de planos')
-    .addTag('properties', 'Gerenciamento de propriedades')
-    .addTag('locations', 'Gerenciamento de localizações')
-    .addTag('service-providers', 'Gerenciamento de prestadores de serviço')
-    .addTag('employees', 'Gerenciamento de funcionários')
-    .addTag('suppliers', 'Gerenciamento de fornecedores')
-    .addTag('buyers', 'Gerenciamento de compradores')
-    .addTag('animals', 'Gerenciamento de animais')
+    .addTag('plans', 'Plan management')
+    .addTag('properties', 'Property management')
+    .addTag('locations', 'Location management')
+    .addTag('service-providers', 'Service provider management')
+    .addTag('employees', 'Employee management')
+    .addTag('suppliers', 'Supplier management')
+    .addTag('buyers', 'Buyer management')
+    .addTag('animals', 'Animal management')
+    .addTag('users', 'User management')
     .addTag('health', 'Health check endpoints')
     .addTag('metrics', 'Prometheus metrics endpoints')
     .build();
@@ -76,13 +77,14 @@ async function bootstrap() {
   SwaggerModule.setup('docs', app, document);
   
   const port = process.env.PORT ?? 3000;
+  const host = process.env.HOST ?? 'http://localhost';
   await app.listen(port);
   
   const logger = app.get(WINSTON_MODULE_NEST_PROVIDER);
-  logger.log(`Application is running on: http:
-  logger.log(`Swagger documentation available at: http:
-  logger.log(`Health check available at: http:
-  logger.log(`Prometheus metrics available at: http:
+  logger.log(`Application is running on: ${host}:${port}`, 'Bootstrap');
+  logger.log(`Swagger documentation available at: ${host}:${port}/docs`, 'Bootstrap');
+  logger.log(`Health check available at: ${host}:${port}/health`, 'Bootstrap');
+  logger.log(`Prometheus metrics available at: ${host}:${port}/metrics`, 'Bootstrap');
   logger.log('Security headers configured with Helmet', 'Bootstrap');
   logger.log('Rate limiting configured with Throttler', 'Bootstrap');
   logger.log('Global validation pipe configured with class-validator', 'Bootstrap');

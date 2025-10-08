@@ -16,10 +16,10 @@ export class PlansController {
   @Throttle({ short: { limit: 15, ttl: 1000 } })
   @CacheKey('plans:all')
   @CacheTTL(600) 
-  @ApiOperation({ summary: 'Obter todos os planos disponíveis' })
+  @ApiOperation({ summary: 'Get all available plans' })
   @ApiResponse({
     status: 200,
-    description: 'Lista de planos retornada com sucesso',
+    description: 'List of plans returned successfully',
     type: PlansResponseDto,
   })
   async getAllPlans() {

@@ -1,11 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import plans, { Plan } from '../mocks/plans';
+import { ResponseHelper } from '../common/helpers/response.helper';
+import { ApiResponse } from '../common/interfaces/api-response.interface';
 
 @Injectable()
 export class PlansService {
   private readonly logger = new Logger(PlansService.name);
 
-  getAllPlans() {
+  getAllPlans(): ApiResponse<Plan[]> {
     this.logger.log('Fetching all plans', 'getAllPlans');
     
     try {
@@ -13,11 +15,7 @@ export class PlansService {
       
       this.logger.log(`Successfully retrieved ${sortedPlans.length} plans`, 'getAllPlans');
       
-      return {
-        success: true,
-        data: sortedPlans,
-        count: sortedPlans.length
-      };
+      return ResponseHelper.successWithCount(sortedPlans, 'Plans retrieved successfully');
     } catch (error) {
       this.logger.error('Error fetching plans', error.stack, 'getAllPlans');
       throw error;

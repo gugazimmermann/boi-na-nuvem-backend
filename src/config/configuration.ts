@@ -1,5 +1,6 @@
 export default () => ({
   port: parseInt(process.env.PORT || '3000', 10),
+  host: process.env.HOST || 'http://localhost',
   database: {
     host: process.env.DATABASE_HOST || 'localhost',
     port: parseInt(process.env.DATABASE_PORT || '5432', 10),

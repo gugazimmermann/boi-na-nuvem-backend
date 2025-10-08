@@ -16,6 +16,7 @@ import { BuyerModule } from './buyer/buyer.module';
 import { AnimalModule } from './animal/animal.module';
 import { HealthModule } from './health/health.module';
 import { CacheModule as AppCacheModule } from './cache/cache.module';
+import { UserModule } from './user/user.module';
 import { 
   PrometheusModule, 
   makeCounterProvider, 
@@ -56,6 +57,7 @@ import configuration from './config/configuration';
     AnimalModule,
     HealthModule,
     AppCacheModule,
+    UserModule,
     PrometheusModule.register({
       path: '/metrics',
       defaultMetrics: {
