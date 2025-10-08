@@ -47,6 +47,7 @@ async function bootstrap() {
   
   app.enableCors({
     origin: [
+      'https://boi-na-nuvem.onrender.com',
       'https://localhost:3000',
       'http://localhost:3000',
       'http://localhost:3001'
