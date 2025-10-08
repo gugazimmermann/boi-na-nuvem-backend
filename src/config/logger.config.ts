@@ -1,6 +1,8 @@
 import { WinstonModuleOptions } from 'nest-winston';
 import * as winston from 'winston';
 
+const isTestEnvironment = process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID;
+
 export const loggerConfig: WinstonModuleOptions = {
   level: process.env.LOG_LEVEL || 'info',
   format: winston.format.combine(
@@ -25,29 +27,35 @@ export const loggerConfig: WinstonModuleOptions = {
       ),
     }),
     
-    new winston.transports.File({
-      filename: 'logs/error.log',
-      level: 'error',
-      format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.json(),
-      ),
-    }),
+    // Only add file transports in non-test environments
+    ...(isTestEnvironment ? [] : [
+      new winston.transports.File({
+        filename: 'logs/error.log',
+        level: 'error',
+        format: winston.format.combine(
+          winston.format.timestamp(),
+          winston.format.json(),
+        ),
+      }),
+      
+      new winston.transports.File({
+        filename: 'logs/combined.log',
+        format: winston.format.combine(
+          winston.format.timestamp(),
+          winston.format.json(),
+        ),
+      }),
+    ]),
+  ],
+  
+  // Only add file exception/rejection handlers in non-test environments
+  ...(isTestEnvironment ? {} : {
+    exceptionHandlers: [
+      new winston.transports.File({ filename: 'logs/exceptions.log' }),
+    ],
     
-    new winston.transports.File({
-      filename: 'logs/combined.log',
-      format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.json(),
-      ),
-    }),
-  ],
-  
-  exceptionHandlers: [
-    new winston.transports.File({ filename: 'logs/exceptions.log' }),
-  ],
-  
-  rejectionHandlers: [
-    new winston.transports.File({ filename: 'logs/rejections.log' }),
-  ],
+    rejectionHandlers: [
+      new winston.transports.File({ filename: 'logs/rejections.log' }),
+    ],
+  }),
 };

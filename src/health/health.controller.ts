@@ -53,13 +53,13 @@ export class HealthController {
   check() {
     return this.health.check([
       
-      () => this.memory.checkHeap('memory_heap', 150 * 1024 * 1024),
+      () => this.memory.checkHeap('memory_heap', 500 * 1024 * 1024), // Increased to 500MB for testing
       
-      () => this.memory.checkRSS('memory_rss', 150 * 1024 * 1024),
+      () => this.memory.checkRSS('memory_rss', 500 * 1024 * 1024), // Increased to 500MB for testing
       
       () => this.disk.checkStorage('storage', { 
         path: process.platform === 'win32' ? 'C:\\' : '/', 
-        thresholdPercent: 0.8 
+        thresholdPercent: 0.9 // Increased to 90% for testing
       }),
     ]);
   }

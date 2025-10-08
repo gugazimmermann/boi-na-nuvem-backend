@@ -25,7 +25,7 @@ export class CacheService {
 
   async has(key: string): Promise<boolean> {
     const value = await this.cacheManager.get(key);
-    return value !== undefined;
+    return value !== undefined && value !== null;
   }
 
   async mget<T>(keys: string[]): Promise<(T | undefined)[]> {

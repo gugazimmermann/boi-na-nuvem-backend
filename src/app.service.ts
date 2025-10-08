@@ -23,7 +23,12 @@ export class AppService {
       environment: this.configService.get<string>('app.environment') || 'development',
     };
 
-    await this.cacheService.set(cacheKey, appInfo, 300);
+    try {
+      await this.cacheService.set(cacheKey, appInfo, 300);
+    } catch (error) {
+      // Log error but don't fail the request if caching fails
+      console.warn('Failed to cache app info:', error);
+    }
     
     return appInfo;
   }

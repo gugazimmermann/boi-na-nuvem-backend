@@ -16,10 +16,21 @@ describe('AppController (e2e)', () => {
     await app.init();
   });
 
+  afterEach(async () => {
+    await app.close();
+  });
+
   it('/ (GET)', () => {
     return request(app.getHttpServer())
       .get('/')
       .expect(200)
-      .expect('Hello World!');
+      .expect((res) => {
+        expect(res.body).toHaveProperty('success', true);
+        expect(res.body).toHaveProperty('data');
+        expect(res.body.data).toHaveProperty('title', 'Boi na Nuvem Backend');
+        expect(res.body.data).toHaveProperty('version', '0.0.1');
+        expect(res.body.data).toHaveProperty('environment', 'test');
+        expect(res.body).toHaveProperty('message', 'Application information retrieved successfully');
+      });
   });
 });
