@@ -47,9 +47,9 @@ async function bootstrap() {
   
   app.enableCors({
     origin: [
-      'https://boi-na-nuvem.onrender.com',
-      'http://localhost:5173',
-      'http://localhost:5174',
+      'https:
+      'http:
+      'http:
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -79,10 +79,10 @@ async function bootstrap() {
   await app.listen(port);
   
   const logger = app.get(WINSTON_MODULE_NEST_PROVIDER);
-  logger.log(`Application is running on: http://localhost:${port}`, 'Bootstrap');
-  logger.log(`Swagger documentation available at: http://localhost:${port}/docs`, 'Bootstrap');
-  logger.log(`Health check available at: http://localhost:${port}/health`, 'Bootstrap');
-  logger.log(`Prometheus metrics available at: http://localhost:${port}/metrics`, 'Bootstrap');
+  logger.log(`Application is running on: http:
+  logger.log(`Swagger documentation available at: http:
+  logger.log(`Health check available at: http:
+  logger.log(`Prometheus metrics available at: http:
   logger.log('Security headers configured with Helmet', 'Bootstrap');
   logger.log('Rate limiting configured with Throttler', 'Bootstrap');
   logger.log('Global validation pipe configured with class-validator', 'Bootstrap');

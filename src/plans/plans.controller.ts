@@ -15,7 +15,7 @@ export class PlansController {
   @Get()
   @Throttle({ short: { limit: 15, ttl: 1000 } })
   @CacheKey('plans:all')
-  @CacheTTL(600) // Cache for 10 minutes
+  @CacheTTL(600) 
   @ApiOperation({ summary: 'Obter todos os planos disponíveis' })
   @ApiResponse({
     status: 200,

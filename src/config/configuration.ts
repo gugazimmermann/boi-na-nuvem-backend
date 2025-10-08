@@ -25,8 +25,8 @@ export default () => ({
     path: process.env.HEALTH_PATH || '/health',
   },
   cache: {
-    ttl: parseInt(process.env.CACHE_TTL || '300', 10), // 5 minutes default
-    max: parseInt(process.env.CACHE_MAX || '100', 10), // 100 items default
+    ttl: parseInt(process.env.CACHE_TTL || '300', 10), 
+    max: parseInt(process.env.CACHE_MAX || '100', 10), 
     enabled: process.env.CACHE_ENABLED === 'true' || true,
   },
 });

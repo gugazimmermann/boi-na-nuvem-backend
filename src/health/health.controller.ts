@@ -52,11 +52,11 @@ export class HealthController {
   @HealthCheck()
   check() {
     return this.health.check([
-      // Memory heap check - fails if heap usage exceeds 150MB
+      
       () => this.memory.checkHeap('memory_heap', 150 * 1024 * 1024),
-      // Memory RSS check - fails if RSS usage exceeds 150MB
+      
       () => this.memory.checkRSS('memory_rss', 150 * 1024 * 1024),
-      // Disk storage check - fails if disk usage exceeds 80%
+      
       () => this.disk.checkStorage('storage', { 
         path: process.platform === 'win32' ? 'C:\\' : '/', 
         thresholdPercent: 0.8 

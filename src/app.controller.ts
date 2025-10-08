@@ -12,7 +12,7 @@ export class AppController {
   @Get()
   @Throttle({ short: { limit: 5, ttl: 1000 } })
   @CacheKey('app-info')
-  @CacheTTL(300) // Cache for 5 minutes
+  @CacheTTL(300)
   async getAppInfo(): Promise<{ title: string; version: string; environment: string }> {
     this.logger.log('GET / - Request received', 'getAppInfo');
     
