@@ -1,5 +1,6 @@
 import { Controller, Get, Logger } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
+import { CacheKey, CacheTTL } from '@nestjs/cache-manager';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { PlansService } from './plans.service';
 import { PlansResponseDto } from './dto/plan.dto';
@@ -13,6 +14,8 @@ export class PlansController {
 
   @Get()
   @Throttle({ short: { limit: 15, ttl: 1000 } })
+  @CacheKey('plans:all')
+  @CacheTTL(600) // Cache for 10 minutes
   @ApiOperation({ summary: 'Obter todos os planos disponíveis' })
   @ApiResponse({
     status: 200,

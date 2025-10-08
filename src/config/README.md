@@ -32,6 +32,11 @@ HEALTH_PATH=/health
 
 # CORS Configuration
 CORS_ORIGIN=https://boi-na-nuvem.onrender.com,http://localhost:5173,http://localhost:5174
+
+# Cache Configuration
+CACHE_TTL=300
+CACHE_MAX=100
+CACHE_ENABLED=true
 ```
 
 ## Usage in Services
@@ -60,6 +65,14 @@ export class MyService {
       expiresIn: this.configService.get<string>('jwt.expiresIn'),
     };
   }
+
+  getCacheConfig() {
+    return {
+      ttl: this.configService.get<number>('cache.ttl'),
+      max: this.configService.get<number>('cache.max'),
+      enabled: this.configService.get<boolean>('cache.enabled'),
+    };
+  }
 }
 ```
 
@@ -72,6 +85,7 @@ The configuration is organized in the following structure:
 - `jwt.*` - JWT authentication settings
 - `prometheus.*` - Prometheus metrics settings
 - `health.*` - Health check settings
+- `cache.*` - Cache settings
 
 ## Environment Files Priority
 

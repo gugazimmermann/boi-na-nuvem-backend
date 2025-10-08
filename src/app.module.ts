@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { WinstonModule } from 'nest-winston';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { CacheModule } from '@nestjs/cache-manager';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -14,6 +15,7 @@ import { SupplierModule } from './supplier/supplier.module';
 import { BuyerModule } from './buyer/buyer.module';
 import { AnimalModule } from './animal/animal.module';
 import { HealthModule } from './health/health.module';
+import { CacheModule as AppCacheModule } from './cache/cache.module';
 import { 
   PrometheusModule, 
   makeCounterProvider, 
@@ -33,6 +35,15 @@ import configuration from './config/configuration';
       load: [configuration],
       envFilePath: ['.env.local', '.env'],
     }),
+    CacheModule.registerAsync({
+      isGlobal: true,
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        ttl: configService.get<number>('cache.ttl'),
+        max: configService.get<number>('cache.max'),
+      }),
+      inject: [ConfigService],
+    }),
     WinstonModule.forRoot(loggerConfig),
     ThrottlerModule.forRoot(throttlerConfig),
     PlansModule,
@@ -44,6 +55,7 @@ import configuration from './config/configuration';
     BuyerModule,
     AnimalModule,
     HealthModule,
+    AppCacheModule,
     PrometheusModule.register({
       path: '/metrics',
       defaultMetrics: {
