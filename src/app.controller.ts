@@ -23,18 +23,4 @@ export class AppController {
     }
   }
 
-  @Get('health')
-  @Throttle({ short: { limit: 20, ttl: 1000 } })
-  getHealth(): { status: string; timestamp: string } {
-    this.logger.log('GET /health - Request received', 'getHealth');
-    
-    try {
-      const result = this.appService.getHealth();
-      this.logger.log('GET /health - Request completed successfully', 'getHealth');
-      return result;
-    } catch (error) {
-      this.logger.error('GET /health - Request failed', error.stack, 'getHealth');
-      throw error;
-    }
-  }
 }

@@ -13,6 +13,7 @@ import { EmployeeModule } from './employee/employee.module';
 import { SupplierModule } from './supplier/supplier.module';
 import { BuyerModule } from './buyer/buyer.module';
 import { AnimalModule } from './animal/animal.module';
+import { HealthModule } from './health/health.module';
 import { loggerConfig } from './config/logger.config';
 import { throttlerConfig } from './config/throttler.config';
 
@@ -31,6 +32,7 @@ import { throttlerConfig } from './config/throttler.config';
     SupplierModule,
     BuyerModule,
     AnimalModule,
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [

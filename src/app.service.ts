@@ -5,12 +5,6 @@ import { ConfigService } from '@nestjs/config';
 export class AppService {
   constructor(private configService: ConfigService) {}
 
-  getHealth(): { status: string; timestamp: string } {
-    return {
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-    };
-  }
 
   getAppInfo(): { title: string; version: string } {
     return {
