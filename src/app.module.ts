@@ -24,11 +24,14 @@ import { MetricsService } from './metrics/metrics.service';
 import { MetricsInterceptor } from './metrics/metrics.interceptor';
 import { loggerConfig } from './config/logger.config';
 import { throttlerConfig } from './config/throttler.config';
+import configuration from './config/configuration';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      load: [configuration],
+      envFilePath: ['.env.local', '.env'],
     }),
     WinstonModule.forRoot(loggerConfig),
     ThrottlerModule.forRoot(throttlerConfig),
