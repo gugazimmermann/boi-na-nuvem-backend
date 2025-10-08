@@ -10,12 +10,15 @@ Backend API for farm and animal management, built with NestJS.
 
 - **NestJS** - Node.js framework for server-side applications
 - **TypeScript** - Programming language
-- **Winston** - Logging system
-- **Swagger** - API documentation
-- **Helmet** - HTTP security
-- **Throttler** - Rate limiting
-- **Class Validator** - Data validation
-- **Jest** - Unit and e2e testing
+- **Winston** - Logging system with structured logging
+- **Swagger** - API documentation and interactive testing
+- **Helmet** - HTTP security headers and protection
+- **Throttler** - Rate limiting and API abuse protection
+- **Class Validator** - Data validation and transformation
+- **Prometheus** - Metrics collection and monitoring
+- **Cache Manager** - In-memory caching for performance
+- **Date-fns** - Date manipulation utilities
+- **Jest** - Unit and e2e testing framework
 
 ## 📁 Project Structure
 
@@ -23,10 +26,13 @@ Backend API for farm and animal management, built with NestJS.
 src/
 ├── animal/           # Animal management
 ├── buyer/            # Buyer management
-├── config/           # Configurations (logger, throttler)
+├── cache/            # Cache management and interceptors
+├── config/           # Configurations (logger, throttler, app config)
 ├── employee/         # Employee management
-├── interceptors/     # Custom interceptors
+├── health/           # Health check endpoints
+├── interceptors/     # Custom interceptors (throttler logger)
 ├── location/         # Location management
+├── metrics/          # Prometheus metrics collection
 ├── mocks/            # Mock data for development
 ├── plans/            # Plan management
 ├── property/         # Property management
@@ -116,15 +122,26 @@ Interactive API documentation is available via Swagger:
 - `GET /buyers` - Buyer management
 - `GET /animals` - Animal management
 
+### System Endpoints
+
+- `GET /health` - Health check endpoint
+- `GET /metrics` - Prometheus metrics endpoint
+
 ## 🔒 Security
 
 The application implements multiple security layers:
 
-- **Helmet**: HTTP security headers
-- **CORS**: Allowed origins configuration
-- **Rate Limiting**: API abuse protection
-- **Validation**: Automatic input data validation
-- **Logging**: Complete logging system for auditing
+- **Helmet**: Comprehensive HTTP security headers including:
+  - Content Security Policy (CSP)
+  - HTTP Strict Transport Security (HSTS)
+  - XSS Protection
+  - Frame Options (clickjacking protection)
+  - Content Type Options (MIME sniffing protection)
+  - Referrer Policy
+- **CORS**: Configured allowed origins with credentials support
+- **Rate Limiting**: API abuse protection with Throttler
+- **Validation**: Automatic input data validation with class-validator
+- **Logging**: Complete logging system for security auditing
 
 ### CORS Configuration
 
@@ -141,6 +158,28 @@ The system uses Winston for logging with different levels:
 - **Error logs**: `logs/error.log`
 - **Exceptions**: `logs/exceptions.log`
 - **Rejections**: `logs/rejections.log`
+
+## 🚀 Caching
+
+The application implements in-memory caching for improved performance:
+
+- **Cache Manager**: Global caching with configurable TTL and max items
+- **Cache Interceptor**: Automatic caching of GET requests
+- **Configurable**: Cache settings can be adjusted via environment variables
+- **Performance**: Reduces database load and improves response times
+
+## 📈 Monitoring & Metrics
+
+The application includes comprehensive monitoring capabilities:
+
+- **Prometheus Metrics**: Automatic collection of HTTP request metrics
+- **Custom Metrics**: 
+  - `http_requests_total` - Total HTTP requests with method, route, and status labels
+  - `http_request_duration_seconds` - Request duration histogram
+  - `active_connections` - Number of active connections gauge
+- **Metrics Endpoint**: Available at `/metrics` for Prometheus scraping
+- **Health Checks**: Built-in health monitoring at `/health`
+- **Performance Monitoring**: Request timing and error rate tracking
 
 ## 🧪 Testing
 
