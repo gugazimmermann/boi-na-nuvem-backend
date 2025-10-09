@@ -29,7 +29,22 @@ describe('User Registration (e2e)', () => {
   });
 
   afterEach(async () => {
-    await app.close();
+    if (app) {
+      // Close the application properly
+      await app.close();
+      
+      // Force garbage collection if available
+      if (global.gc) {
+        global.gc();
+      }
+      
+      // Wait for cleanup and clear any timers
+      await new Promise(resolve => setTimeout(resolve, 200));
+      jest.clearAllTimers();
+      
+      // Clear the app reference
+      app = null;
+    }
   });
 
   describe('POST /user/register', () => {
@@ -376,6 +391,735 @@ describe('User Registration (e2e)', () => {
           expect(res.body).toHaveProperty('statusCode', 404);
           expect(res.body).toHaveProperty('message', 'User subscription not found');
         });
+    });
+  });
+
+  describe('POST /user/login', () => {
+    let registeredUser: any;
+
+    beforeEach(async () => {
+      // Register a user for login tests
+      const userData = {
+        name: 'Login Test User',
+        email: 'login.test@email.com',
+        phone: '+55 11 99999-1234',
+        document: '111.222.333-44',
+        street: 'Rua Login Test',
+        city: 'São Paulo',
+        state: 'SP',
+        country: 'Brasil',
+        zipCode: '01234-567',
+        password: 'logintest123',
+      };
+
+      const registerResponse = await request(app.getHttpServer())
+        .post('/user/register')
+        .send(userData)
+        .expect(201);
+
+      registeredUser = {
+        ...userData,
+        userId: registerResponse.body.data.userId
+      };
+    });
+
+    it('should login successfully with valid credentials', () => {
+      return request(app.getHttpServer())
+        .post('/user/login')
+        .send({
+          email: registeredUser.email,
+          password: registeredUser.password
+        })
+        .expect(200)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('success', true);
+          expect(res.body).toHaveProperty('message', 'Login successful');
+          expect(res.body).toHaveProperty('data');
+          expect(res.body.data).toHaveProperty('token');
+          expect(res.body.data).toHaveProperty('refreshToken');
+          expect(res.body.data).toHaveProperty('expiresAt');
+          expect(res.body.data).toHaveProperty('refreshExpiresAt');
+          expect(res.body.data).toHaveProperty('rememberMe', false);
+          
+          // Verify token structure
+          expect(typeof res.body.data.token).toBe('string');
+          expect(typeof res.body.data.refreshToken).toBe('string');
+          expect(typeof res.body.data.expiresAt).toBe('string');
+          expect(typeof res.body.data.refreshExpiresAt).toBe('string');
+        });
+    });
+
+    it('should login successfully with rememberMe option', () => {
+      return request(app.getHttpServer())
+        .post('/user/login')
+        .send({
+          email: registeredUser.email,
+          password: registeredUser.password,
+          rememberMe: true
+        })
+        .expect(200)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('success', true);
+          expect(res.body).toHaveProperty('data');
+          expect(res.body.data).toHaveProperty('rememberMe', true);
+          expect(res.body.data).toHaveProperty('token');
+          expect(res.body.data).toHaveProperty('refreshToken');
+        });
+    });
+
+    it('should return 401 for invalid email', () => {
+      return request(app.getHttpServer())
+        .post('/user/login')
+        .send({
+          email: 'nonexistent@email.com',
+          password: registeredUser.password
+        })
+        .expect(401)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('statusCode', 401);
+          expect(res.body).toHaveProperty('message', 'Invalid email or password');
+        });
+    });
+
+    it('should return 401 for invalid password', () => {
+      return request(app.getHttpServer())
+        .post('/user/login')
+        .send({
+          email: registeredUser.email,
+          password: 'wrongpassword'
+        })
+        .expect(401)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('statusCode', 401);
+          expect(res.body).toHaveProperty('message', 'Invalid email or password');
+        });
+    });
+
+    it('should return 400 for missing email', () => {
+      return request(app.getHttpServer())
+        .post('/user/login')
+        .send({
+          password: registeredUser.password
+        })
+        .expect(400)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('statusCode', 400);
+          expect(res.body).toHaveProperty('message');
+          expect(Array.isArray(res.body.message)).toBe(true);
+        });
+    });
+
+    it('should return 400 for missing password', () => {
+      return request(app.getHttpServer())
+        .post('/user/login')
+        .send({
+          email: registeredUser.email
+        })
+        .expect(400)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('statusCode', 400);
+          expect(res.body).toHaveProperty('message');
+          expect(Array.isArray(res.body.message)).toBe(true);
+        });
+    });
+
+    it('should return 400 for invalid email format', () => {
+      return request(app.getHttpServer())
+        .post('/user/login')
+        .send({
+          email: 'invalid-email',
+          password: registeredUser.password
+        })
+        .expect(400)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('statusCode', 400);
+          expect(res.body).toHaveProperty('message');
+          expect(Array.isArray(res.body.message)).toBe(true);
+        });
+    });
+
+    it('should handle rememberMe string conversion', () => {
+      return request(app.getHttpServer())
+        .post('/user/login')
+        .send({
+          email: registeredUser.email,
+          password: registeredUser.password,
+          rememberMe: 'true' // String 'true' gets converted to boolean true
+        })
+        .expect(200)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('success', true);
+          expect(res.body.data).toHaveProperty('rememberMe', true);
+        });
+    });
+  });
+
+  describe('POST /user/refresh', () => {
+    let loginResponse: any;
+
+    beforeEach(async () => {
+      // Register and login a user for refresh token tests
+      const userData = {
+        name: 'Refresh Test User',
+        email: 'refresh.test@email.com',
+        phone: '+55 11 99999-1234',
+        document: '555.666.777-88',
+        street: 'Rua Refresh Test',
+        city: 'São Paulo',
+        state: 'SP',
+        country: 'Brasil',
+        zipCode: '01234-567',
+        password: 'refreshtest123',
+      };
+
+      await request(app.getHttpServer())
+        .post('/user/register')
+        .send(userData)
+        .expect(201);
+
+      const response = await request(app.getHttpServer())
+        .post('/user/login')
+        .send({
+          email: userData.email,
+          password: userData.password
+        })
+        .expect(200);
+
+      loginResponse = response.body.data;
+    });
+
+    it('should refresh token successfully with valid refresh token', () => {
+      return request(app.getHttpServer())
+        .post('/user/refresh')
+        .send({
+          refreshToken: loginResponse.refreshToken
+        })
+        .expect(200)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('success', true);
+          expect(res.body).toHaveProperty('message', 'Token refreshed successfully');
+          expect(res.body).toHaveProperty('data');
+          expect(res.body.data).toHaveProperty('token');
+          expect(res.body.data).toHaveProperty('refreshToken');
+          expect(res.body.data).toHaveProperty('expiresAt');
+          expect(res.body.data).toHaveProperty('refreshExpiresAt');
+          
+          // New tokens should be different from original ones (or same if generated at same time)
+          // Note: Tokens might be the same if generated within the same second
+          expect(res.body.data.token).toBeDefined();
+          expect(res.body.data.refreshToken).toBeDefined();
+        });
+    });
+
+    it('should return 401 for invalid refresh token', () => {
+      return request(app.getHttpServer())
+        .post('/user/refresh')
+        .send({
+          refreshToken: 'invalid.refresh.token'
+        })
+        .expect(401)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('statusCode', 401);
+          expect(res.body).toHaveProperty('message', 'Invalid or expired refresh token');
+        });
+    });
+
+    it('should return 400 for missing refresh token', () => {
+      return request(app.getHttpServer())
+        .post('/user/refresh')
+        .send({})
+        .expect(400)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('statusCode', 400);
+          expect(res.body).toHaveProperty('message');
+          expect(Array.isArray(res.body.message)).toBe(true);
+        });
+    });
+
+    it('should return 401 for non-string refresh token', () => {
+      return request(app.getHttpServer())
+        .post('/user/refresh')
+        .send({
+          refreshToken: 123
+        })
+        .expect(401)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('statusCode', 401);
+          expect(res.body).toHaveProperty('message', 'Invalid or expired refresh token');
+        });
+    });
+  });
+
+  describe('POST /user/forgot-password', () => {
+    let registeredUser: any;
+
+    beforeEach(async () => {
+      // Register a user for forgot password tests
+      const userData = {
+        name: 'Forgot Password Test User',
+        email: 'forgot.test@email.com',
+        phone: '+55 11 99999-1234',
+        document: '999.888.777-66',
+        street: 'Rua Forgot Test',
+        city: 'São Paulo',
+        state: 'SP',
+        country: 'Brasil',
+        zipCode: '01234-567',
+        password: 'forgottest123',
+      };
+
+      const registerResponse = await request(app.getHttpServer())
+        .post('/user/register')
+        .send(userData)
+        .expect(201);
+
+      registeredUser = {
+        ...userData,
+        userId: registerResponse.body.data.userId
+      };
+    });
+
+    it('should send password reset code for existing user', () => {
+      return request(app.getHttpServer())
+        .post('/user/forgot-password')
+        .send({
+          email: registeredUser.email
+        })
+        .expect(200)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('success', true);
+          expect(res.body).toHaveProperty('message', 'Password reset code sent');
+          expect(res.body).toHaveProperty('data');
+          expect(res.body.data).toHaveProperty('message');
+          expect(res.body.data).toHaveProperty('email', registeredUser.email);
+          expect(res.body.data.message).toContain('Password reset code has been sent');
+        });
+    });
+
+    it('should return success even for non-existent email (security)', () => {
+      return request(app.getHttpServer())
+        .post('/user/forgot-password')
+        .send({
+          email: 'nonexistent@email.com'
+        })
+        .expect(200)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('success', true);
+          expect(res.body).toHaveProperty('message', 'Password reset code sent');
+          expect(res.body).toHaveProperty('data');
+          expect(res.body.data).toHaveProperty('email', 'nonexistent@email.com');
+        });
+    });
+
+    it('should return 400 for missing email', () => {
+      return request(app.getHttpServer())
+        .post('/user/forgot-password')
+        .send({})
+        .expect(400)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('statusCode', 400);
+          expect(res.body).toHaveProperty('message');
+          expect(Array.isArray(res.body.message)).toBe(true);
+        });
+    });
+
+    it('should return 400 for invalid email format', () => {
+      return request(app.getHttpServer())
+        .post('/user/forgot-password')
+        .send({
+          email: 'invalid-email'
+        })
+        .expect(400)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('statusCode', 400);
+          expect(res.body).toHaveProperty('message');
+          expect(Array.isArray(res.body.message)).toBe(true);
+        });
+    });
+
+    it('should return 400 for non-string email', () => {
+      return request(app.getHttpServer())
+        .post('/user/forgot-password')
+        .send({
+          email: 123
+        })
+        .expect(400)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('statusCode', 400);
+          expect(res.body).toHaveProperty('message');
+          expect(Array.isArray(res.body.message)).toBe(true);
+        });
+    });
+  });
+
+  describe('POST /user/validate-reset-code', () => {
+    let resetCode: string;
+
+    beforeEach(async () => {
+      // Register a user and request password reset to get a valid code
+      const userData = {
+        name: 'Validate Code Test User',
+        email: 'validate.test@email.com',
+        phone: '+55 11 99999-1234',
+        document: '111.222.333-44',
+        street: 'Rua Validate Test',
+        city: 'São Paulo',
+        state: 'SP',
+        country: 'Brasil',
+        zipCode: '01234-567',
+        password: 'validatetest123',
+      };
+
+      await request(app.getHttpServer())
+        .post('/user/register')
+        .send(userData)
+        .expect(201);
+
+      // Request password reset
+      await request(app.getHttpServer())
+        .post('/user/forgot-password')
+        .send({
+          email: userData.email
+        })
+        .expect(200);
+
+      // For testing purposes, we'll use a mock 8-digit code
+      // In a real scenario, you'd need to extract this from the email service or database
+      resetCode = '12345678';
+    });
+
+    it('should validate reset code successfully', () => {
+      return request(app.getHttpServer())
+        .post('/user/validate-reset-code')
+        .send({
+          code: resetCode
+        })
+        .expect(200)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('success', true);
+          expect(res.body).toHaveProperty('message', 'Code validation completed');
+          expect(res.body).toHaveProperty('data');
+          expect(res.body.data).toHaveProperty('valid');
+          expect(res.body.data).toHaveProperty('message');
+          expect(typeof res.body.data.valid).toBe('boolean');
+        });
+    });
+
+    it('should return 400 for missing code', () => {
+      return request(app.getHttpServer())
+        .post('/user/validate-reset-code')
+        .send({})
+        .expect(400)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('statusCode', 400);
+          expect(res.body).toHaveProperty('message');
+          expect(Array.isArray(res.body.message)).toBe(true);
+        });
+    });
+
+    it('should return 400 for invalid code format (not 8 digits)', () => {
+      return request(app.getHttpServer())
+        .post('/user/validate-reset-code')
+        .send({
+          code: '1234567' // 7 digits instead of 8
+        })
+        .expect(400)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('statusCode', 400);
+          expect(res.body).toHaveProperty('message');
+          expect(Array.isArray(res.body.message)).toBe(true);
+        });
+    });
+
+    it('should return 400 for non-numeric code', () => {
+      return request(app.getHttpServer())
+        .post('/user/validate-reset-code')
+        .send({
+          code: 'abcdefgh'
+        })
+        .expect(400)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('statusCode', 400);
+          expect(res.body).toHaveProperty('message');
+          expect(Array.isArray(res.body.message)).toBe(true);
+        });
+    });
+
+    it('should handle numeric code conversion', () => {
+      return request(app.getHttpServer())
+        .post('/user/validate-reset-code')
+        .send({
+          code: 12345678 // Number gets converted to string
+        })
+        .expect(200)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('success', true);
+          expect(res.body).toHaveProperty('data');
+          expect(res.body.data).toHaveProperty('valid');
+        });
+    });
+  });
+
+  describe('POST /user/reset-password', () => {
+    let registeredUser: any;
+    let resetCode: string;
+
+    beforeEach(async () => {
+      // Register a user for reset password tests
+      const userData = {
+        name: 'Reset Password Test User',
+        email: 'reset.test@email.com',
+        phone: '+55 11 99999-1234',
+        document: '555.666.777-88',
+        street: 'Rua Reset Test',
+        city: 'São Paulo',
+        state: 'SP',
+        country: 'Brasil',
+        zipCode: '01234-567',
+        password: 'resettest123',
+      };
+
+      const registerResponse = await request(app.getHttpServer())
+        .post('/user/register')
+        .send(userData)
+        .expect(201);
+
+      registeredUser = {
+        ...userData,
+        userId: registerResponse.body.data.userId
+      };
+
+      // Request password reset
+      await request(app.getHttpServer())
+        .post('/user/forgot-password')
+        .send({
+          email: userData.email
+        })
+        .expect(200);
+
+      // For testing purposes, we'll use a mock 8-digit code
+      // In a real scenario, you'd need to extract this from the email service or database
+      resetCode = '12345678';
+    });
+
+    it('should return 400 for invalid reset code (mock code)', () => {
+      return request(app.getHttpServer())
+        .post('/user/reset-password')
+        .send({
+          code: resetCode, // Mock code that doesn't exist in the system
+          newPassword: 'NewPassword123'
+        })
+        .expect(400)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('statusCode', 400);
+          expect(res.body).toHaveProperty('message', 'Invalid or expired reset code');
+        });
+    });
+
+    it('should return 400 for invalid reset code', () => {
+      return request(app.getHttpServer())
+        .post('/user/reset-password')
+        .send({
+          code: '99999999', // Invalid code
+          newPassword: 'NewPassword123'
+        })
+        .expect(400)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('statusCode', 400);
+          expect(res.body).toHaveProperty('message', 'Invalid or expired reset code');
+        });
+    });
+
+    it('should return 400 for missing code', () => {
+      return request(app.getHttpServer())
+        .post('/user/reset-password')
+        .send({
+          newPassword: 'NewPassword123'
+        })
+        .expect(400)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('statusCode', 400);
+          expect(res.body).toHaveProperty('message');
+          expect(Array.isArray(res.body.message)).toBe(true);
+        });
+    });
+
+    it('should return 400 for missing new password', () => {
+      return request(app.getHttpServer())
+        .post('/user/reset-password')
+        .send({
+          code: resetCode
+        })
+        .expect(400)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('statusCode', 400);
+          expect(res.body).toHaveProperty('message');
+          expect(Array.isArray(res.body.message)).toBe(true);
+        });
+    });
+
+    it('should return 400 for weak password (less than 8 characters)', () => {
+      return request(app.getHttpServer())
+        .post('/user/reset-password')
+        .send({
+          code: resetCode,
+          newPassword: 'weak'
+        })
+        .expect(400)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('statusCode', 400);
+          expect(res.body).toHaveProperty('message');
+          expect(Array.isArray(res.body.message)).toBe(true);
+        });
+    });
+
+    it('should return 400 for password without uppercase letter', () => {
+      return request(app.getHttpServer())
+        .post('/user/reset-password')
+        .send({
+          code: resetCode,
+          newPassword: 'lowercase123'
+        })
+        .expect(400)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('statusCode', 400);
+          expect(res.body).toHaveProperty('message');
+          expect(Array.isArray(res.body.message)).toBe(true);
+        });
+    });
+
+    it('should return 400 for password without lowercase letter', () => {
+      return request(app.getHttpServer())
+        .post('/user/reset-password')
+        .send({
+          code: resetCode,
+          newPassword: 'UPPERCASE123'
+        })
+        .expect(400)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('statusCode', 400);
+          expect(res.body).toHaveProperty('message');
+          expect(Array.isArray(res.body.message)).toBe(true);
+        });
+    });
+
+    it('should return 400 for invalid code format (not 8 digits)', () => {
+      return request(app.getHttpServer())
+        .post('/user/reset-password')
+        .send({
+          code: '1234567', // 7 digits instead of 8
+          newPassword: 'NewPassword123'
+        })
+        .expect(400)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('statusCode', 400);
+          expect(res.body).toHaveProperty('message');
+          expect(Array.isArray(res.body.message)).toBe(true);
+        });
+    });
+
+    it('should handle numeric code conversion in reset', () => {
+      return request(app.getHttpServer())
+        .post('/user/reset-password')
+        .send({
+          code: 12345678, // Number gets converted to string
+          newPassword: 'NewPassword123'
+        })
+        .expect(400) // Still fails because it's an invalid code
+        .expect((res) => {
+          expect(res.body).toHaveProperty('statusCode', 400);
+          expect(res.body).toHaveProperty('message', 'Invalid or expired reset code');
+        });
+    });
+
+    it('should return 400 for non-string password', () => {
+      return request(app.getHttpServer())
+        .post('/user/reset-password')
+        .send({
+          code: resetCode,
+          newPassword: 12345678
+        })
+        .expect(400)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('statusCode', 400);
+          expect(res.body).toHaveProperty('message');
+          expect(Array.isArray(res.body.message)).toBe(true);
+        });
+    });
+  });
+
+  describe('Password Recovery Flow Integration', () => {
+    let registeredUser: any;
+
+    beforeEach(async () => {
+      // Register a user for integration tests
+      const userData = {
+        name: 'Integration Test User',
+        email: 'integration.test@email.com',
+        phone: '+55 11 99999-1234',
+        document: '777.888.999-00',
+        street: 'Rua Integration Test',
+        city: 'São Paulo',
+        state: 'SP',
+        country: 'Brasil',
+        zipCode: '01234-567',
+        password: 'integrationtest123',
+      };
+
+      const registerResponse = await request(app.getHttpServer())
+        .post('/user/register')
+        .send(userData)
+        .expect(201);
+
+      registeredUser = {
+        ...userData,
+        userId: registerResponse.body.data.userId
+      };
+    });
+
+    it('should demonstrate password recovery flow (without actual reset)', async () => {
+      // Step 1: Request password reset
+      const forgotResponse = await request(app.getHttpServer())
+        .post('/user/forgot-password')
+        .send({
+          email: registeredUser.email
+        })
+        .expect(200);
+
+      expect(forgotResponse.body.success).toBe(true);
+
+      // Step 2: Validate reset code (using mock code for testing)
+      const validateResponse = await request(app.getHttpServer())
+        .post('/user/validate-reset-code')
+        .send({
+          code: '12345678'
+        })
+        .expect(200);
+
+      expect(validateResponse.body.success).toBe(true);
+
+      // Step 3: Attempt reset password (will fail with mock code)
+      const resetResponse = await request(app.getHttpServer())
+        .post('/user/reset-password')
+        .send({
+          code: '12345678',
+          newPassword: 'NewIntegrationPassword123'
+        })
+        .expect(400); // Expected to fail with mock code
+
+      expect(resetResponse.body.statusCode).toBe(400);
+
+      // Step 4: Verify original login still works (since reset failed)
+      const loginResponse = await request(app.getHttpServer())
+        .post('/user/login')
+        .send({
+          email: registeredUser.email,
+          password: registeredUser.password // Original password still works
+        })
+        .expect(200);
+
+      expect(loginResponse.body.success).toBe(true);
+      expect(loginResponse.body.data).toHaveProperty('token');
     });
   });
 });

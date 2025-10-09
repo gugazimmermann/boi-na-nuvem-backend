@@ -10,6 +10,8 @@ Backend API for farm and animal management, built with NestJS.
 
 - **NestJS** - Node.js framework for server-side applications
 - **TypeScript** - Programming language
+- **JWT** - JSON Web Tokens for secure authentication
+- **bcrypt** - Password hashing and verification
 - **Winston** - Logging system with structured logging
 - **Swagger** - API documentation and interactive testing
 - **Helmet** - HTTP security headers and protection
@@ -28,6 +30,10 @@ src/
 ├── animal/           # Animal management
 ├── buyer/            # Buyer management
 ├── cache/            # Cache management and interceptors
+├── common/           # Common utilities and services
+│   ├── helpers/      # Response helpers and utilities
+│   ├── interfaces/   # Common interfaces
+│   └── services/     # Shared services (email)
 ├── config/           # Configurations (logger, throttler, app config)
 ├── employee/         # Employee management
 ├── health/           # Health check endpoints
@@ -39,6 +45,8 @@ src/
 ├── property/         # Property management
 ├── service-provider/ # Service provider management
 ├── supplier/         # Supplier management
+├── user/             # User authentication and management
+│   └── dto/          # User data transfer objects
 ├── app.controller.ts # Main controller
 ├── app.module.ts     # Main module
 ├── app.service.ts    # Main service
@@ -75,6 +83,7 @@ DATABASE_NAME=boi_na_nuvem
 # JWT Configuration
 JWT_SECRET=your-secret-key
 JWT_EXPIRES_IN=1d
+JWT_REFRESH_EXPIRES_IN=7d
 
 # App Configuration
 APP_TITLE=Boi na Nuvem Backend
@@ -147,6 +156,11 @@ Interactive API documentation is available via Swagger:
 ### User Management Endpoints
 
 - `POST /user/register` - Register a new user with automatic subscription
+- `POST /user/login` - User authentication with JWT tokens and remember me option
+- `POST /user/refresh` - Refresh access token using refresh token
+- `POST /user/forgot-password` - Request password reset code via email
+- `POST /user/reset-password` - Reset password using valid reset code
+- `POST /user/validate-reset-code` - Validate password reset code
 - `GET /user` - Get all registered users
 - `GET /user/:id` - Get user by ID
 - `GET /user/email/:email` - Get user by email address
@@ -172,6 +186,16 @@ The application implements multiple security layers:
 - **Rate Limiting**: API abuse protection with Throttler
 - **Validation**: Automatic input data validation with class-validator
 - **Logging**: Complete logging system for security auditing
+- **JWT Authentication**: Secure token-based authentication with:
+  - Access tokens with user information and subscription details
+  - Refresh tokens for token renewal
+  - Configurable token expiration (1d/30d based on remember me)
+  - Secure password hashing with bcrypt
+- **Password Reset**: Secure password recovery system with:
+  - 8-digit numeric reset codes
+  - 15-minute code expiration
+  - Email-based code delivery
+  - One-time use codes
 
 ### CORS Configuration
 
@@ -188,6 +212,45 @@ The system uses Winston for logging with different levels:
 - **Error logs**: `logs/error.log`
 - **Exceptions**: `logs/exceptions.log`
 - **Rejections**: `logs/rejections.log`
+
+## 🔐 Authentication & Security Features
+
+The application includes a comprehensive authentication system:
+
+### JWT Token System
+- **Access Tokens**: Contain user information, subscription details, and expiration
+- **Refresh Tokens**: Allow token renewal without re-authentication
+- **Remember Me**: Extended token expiration (30d access, 60d refresh) vs standard (1d access, 7d refresh)
+- **Token Payload**: Includes userId, name, planName, subscriptionType, subscriptionStatus, subscriptionCreatedAt
+
+### Password Management
+- **Secure Hashing**: bcrypt with salt rounds for password storage
+- **Password Reset**: 8-digit numeric codes sent via email
+- **Code Expiration**: Reset codes expire after 15 minutes
+- **One-time Use**: Codes are invalidated after successful password reset
+- **Validation**: Frontend can validate reset codes before showing reset form
+
+### User Registration & Login
+- **Automatic Subscription**: New users get Enterprise plan (trial) with 0 value
+- **Email Validation**: Comprehensive email format validation
+- **Duplicate Prevention**: Prevents duplicate emails and documents
+- **Subscription Integration**: Login includes subscription and plan information
+
+## 📧 Email Service
+
+The application includes a mock email service for development:
+
+### Features
+- **Password Reset Emails**: Professional HTML emails with reset codes
+- **Confirmation Emails**: Password reset confirmation notifications
+- **Logging**: All emails are logged to console for development
+- **Extensible**: Ready for integration with real email services (SendGrid, AWS SES, Mailgun)
+
+### Email Templates
+- **Professional Design**: HTML emails with company branding
+- **Security Information**: Clear instructions about code expiration and usage
+- **Portuguese Language**: Localized content for Brazilian users
+- **Responsive**: Mobile-friendly email templates
 
 ## 🚀 Caching
 

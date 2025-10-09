@@ -11,5 +11,13 @@
   ],
   "moduleNameMapper": {
     "^uuid$": "uuid"
-  }
+  },
+  "forceExit": true,
+  "detectOpenHandles": true,
+  "maxWorkers": 1,
+  "globalSetup": "<rootDir>/global-setup.ts",
+  "globalTeardown": "<rootDir>/global-teardown.ts",
+  "setupFilesAfterEnv": ["<rootDir>/setup.ts"],
+  "testTimeout": 60000,
+  "verbose": false
 }

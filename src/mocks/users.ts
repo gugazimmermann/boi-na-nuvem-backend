@@ -14,6 +14,8 @@ export interface User {
   country: string;
   zipCode: string;
   createdAt: Date;
+  passwordResetCode?: string;
+  passwordResetExpires?: Date;
 }
 
 const users: User[] = [

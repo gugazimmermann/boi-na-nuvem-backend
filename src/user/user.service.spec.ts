@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConflictException, InternalServerErrorException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { UserService } from './user.service';
 import { RegisterDto } from './dto/register.dto';
 import { RegisterResponseDto } from './dto/register-response.dto';
@@ -7,6 +8,7 @@ import { User } from '../mocks/users';
 import { Subscription } from '../mocks/subscriptions';
 import { Plan } from '../mocks/plans';
 import { ApiResponse } from '../common/interfaces/api-response.interface';
+import { EmailService } from '../common/services/email.service';
 
 // Mock the external dependencies
 jest.mock('uuid', () => ({
@@ -15,17 +17,43 @@ jest.mock('uuid', () => ({
 
 jest.mock('bcrypt', () => ({
   hash: jest.fn((password: string) => Promise.resolve(`hashed_${password}`)),
+  compare: jest.fn((password: string, hash: string) => Promise.resolve(hash === `hashed_${password}`)),
 }));
 
 describe('UserService', () => {
   let service: UserService;
+  let jwtService: jest.Mocked<JwtService>;
+  let emailService: jest.Mocked<EmailService>;
 
   beforeEach(async () => {
+    const mockJwtService = {
+      sign: jest.fn(() => 'mocked-jwt-token'),
+      verify: jest.fn(() => ({ sub: 'mocked-uuid-123', type: 'refresh' })),
+    };
+
+    const mockEmailService = {
+      sendEmail: jest.fn(() => Promise.resolve(true)),
+      sendPasswordResetEmail: jest.fn(() => Promise.resolve(true)),
+      sendPasswordResetConfirmationEmail: jest.fn(() => Promise.resolve(true)),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
-      providers: [UserService],
+      providers: [
+        UserService,
+        {
+          provide: JwtService,
+          useValue: mockJwtService,
+        },
+        {
+          provide: EmailService,
+          useValue: mockEmailService,
+        },
+      ],
     }).compile();
 
     service = module.get<UserService>(UserService);
+    jwtService = module.get(JwtService);
+    emailService = module.get(EmailService);
   });
 
   afterEach(() => {
@@ -317,6 +345,184 @@ describe('UserService', () => {
     it('should return undefined for non-existent user subscription', async () => {
       const subscription = await service.getUserSubscription('non-existent-id');
       expect(subscription).toBeUndefined();
+    });
+  });
+
+  describe('login', () => {
+    it('should login successfully with valid credentials', async () => {
+      // First register a user
+      const registerDto: RegisterDto = {
+        name: 'João Silva',
+        email: 'joao.silva.login@email.com',
+        phone: '+55 11 99999-1234',
+        document: '123.456.789-login',
+        street: 'Rua das Flores',
+        city: 'São Paulo',
+        state: 'SP',
+        country: 'Brasil',
+        zipCode: '01234-567',
+        password: 'minhasenha123',
+      };
+
+      await service.register(registerDto);
+
+      const loginDto = {
+        email: 'joao.silva.login@email.com',
+        password: 'minhasenha123',
+        rememberMe: false,
+      };
+
+      const result = await service.login(loginDto);
+
+      expect(result.success).toBe(true);
+      expect(result.message).toBe('Login successful');
+      expect(result.data).toHaveProperty('token');
+      expect(result.data).toHaveProperty('refreshToken');
+      expect(result.data).toHaveProperty('expiresAt');
+      expect(result.data).toHaveProperty('refreshExpiresAt');
+      expect(result.data.rememberMe).toBe(false);
+    });
+
+    it('should throw UnauthorizedException for invalid email', async () => {
+      const loginDto = {
+        email: 'nonexistent@email.com',
+        password: 'password123',
+      };
+
+      await expect(service.login(loginDto)).rejects.toThrow('Invalid email or password');
+    });
+
+    it('should throw UnauthorizedException for invalid password', async () => {
+      // First register a user
+      const registerDto: RegisterDto = {
+        name: 'João Silva',
+        email: 'joao.silva.invalid@email.com',
+        phone: '+55 11 99999-1234',
+        document: '123.456.789-invalid',
+        street: 'Rua das Flores',
+        city: 'São Paulo',
+        state: 'SP',
+        country: 'Brasil',
+        zipCode: '01234-567',
+        password: 'minhasenha123',
+      };
+
+      await service.register(registerDto);
+
+      const loginDto = {
+        email: 'joao.silva.invalid@email.com',
+        password: 'wrongpassword',
+      };
+
+      await expect(service.login(loginDto)).rejects.toThrow('Invalid email or password');
+    });
+  });
+
+  describe('refreshToken', () => {
+    it('should refresh token successfully', async () => {
+      // First register and login a user
+      const registerDto: RegisterDto = {
+        name: 'João Silva',
+        email: 'joao.silva.refresh@email.com',
+        phone: '+55 11 99999-1234',
+        document: '123.456.789-refresh',
+        street: 'Rua das Flores',
+        city: 'São Paulo',
+        state: 'SP',
+        country: 'Brasil',
+        zipCode: '01234-567',
+        password: 'minhasenha123',
+      };
+
+      await service.register(registerDto);
+
+      const refreshTokenDto = {
+        refreshToken: 'valid-refresh-token',
+      };
+
+      const result = await service.refreshToken(refreshTokenDto);
+
+      expect(result.success).toBe(true);
+      expect(result.message).toBe('Token refreshed successfully');
+      expect(result.data).toHaveProperty('token');
+      expect(result.data).toHaveProperty('refreshToken');
+      expect(result.data).toHaveProperty('expiresAt');
+      expect(result.data).toHaveProperty('refreshExpiresAt');
+    });
+
+    it('should throw UnauthorizedException for invalid refresh token', async () => {
+      const refreshTokenDto = {
+        refreshToken: 'invalid-refresh-token',
+      };
+
+      // Mock jwtService.verify to throw an error
+      jwtService.verify.mockImplementation(() => {
+        throw new Error('Invalid token');
+      });
+
+      await expect(service.refreshToken(refreshTokenDto)).rejects.toThrow('Invalid or expired refresh token');
+    });
+  });
+
+  describe('forgotPassword', () => {
+    it('should send password reset code for existing user', async () => {
+      // First register a user
+      const registerDto: RegisterDto = {
+        name: 'João Silva',
+        email: 'joao.silva.forgot@email.com',
+        phone: '+55 11 99999-1234',
+        document: '123.456.789-forgot',
+        street: 'Rua das Flores',
+        city: 'São Paulo',
+        state: 'SP',
+        country: 'Brasil',
+        zipCode: '01234-567',
+        password: 'minhasenha123',
+      };
+
+      await service.register(registerDto);
+
+      const forgotPasswordDto = {
+        email: 'joao.silva.forgot@email.com',
+      };
+
+      const result = await service.forgotPassword(forgotPasswordDto);
+
+      expect(result.success).toBe(true);
+      expect(result.message).toBe('Password reset code sent');
+      expect(result.data).toHaveProperty('message');
+      expect(result.data).toHaveProperty('email', 'joao.silva.forgot@email.com');
+      expect(emailService.sendPasswordResetEmail).toHaveBeenCalled();
+    });
+
+    it('should return success even for non-existent email', async () => {
+      const forgotPasswordDto = {
+        email: 'nonexistent@email.com',
+      };
+
+      const result = await service.forgotPassword(forgotPasswordDto);
+
+      expect(result.success).toBe(true);
+      expect(result.message).toBe('Password reset code sent');
+      expect(result.data).toHaveProperty('email', 'nonexistent@email.com');
+    });
+  });
+
+  describe('resetPassword', () => {
+    it('should throw BadRequestException for invalid reset code', async () => {
+      const resetPasswordDto = {
+        code: '12345678',
+        newPassword: 'NewPassword123',
+      };
+
+      await expect(service.resetPassword(resetPasswordDto)).rejects.toThrow('Invalid or expired reset code');
+    });
+  });
+
+  describe('validateResetCode', () => {
+    it('should return false for invalid reset code', async () => {
+      const isValid = await service.validateResetCode('12345678');
+      expect(isValid).toBe(false);
     });
   });
 

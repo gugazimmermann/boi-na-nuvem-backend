@@ -17,7 +17,22 @@ describe('AppController (e2e)', () => {
   });
 
   afterEach(async () => {
-    await app.close();
+    if (app) {
+      // Close the application properly
+      await app.close();
+      
+      // Force garbage collection if available
+      if (global.gc) {
+        global.gc();
+      }
+      
+      // Wait for cleanup and clear any timers
+      await new Promise(resolve => setTimeout(resolve, 200));
+      jest.clearAllTimers();
+      
+      // Clear the app reference
+      app = null;
+    }
   });
 
   it('/ (GET)', () => {
