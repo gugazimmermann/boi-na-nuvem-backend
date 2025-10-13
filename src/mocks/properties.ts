@@ -3,6 +3,13 @@ export enum PropertyStatus {
   INACTIVE = 'inactive',
 }
 
+export enum PropertyPhase {
+  CRIA = 'cria',
+  RECRIA = 'recria',
+  ENGORDA = 'engorda',
+  CICLO_COMPLETO = 'ciclo_completo',
+}
+
 export interface PasturePlanning {
   month: string;
   precipitation: number;
@@ -25,6 +32,7 @@ export interface Property {
   latitude?: number;
   longitude?: number;
   status: PropertyStatus;
+  phases: PropertyPhase[];
   createdAt?: string;
   deletedAt?: string | null;
   pasturePlanning?: PasturePlanning[];
@@ -36,6 +44,7 @@ export const PROPERTIES: Property[] = [
     code: 'ALL',
     name: 'Todas as Propriedades',
     status: PropertyStatus.ACTIVE,
+    phases: [PropertyPhase.CICLO_COMPLETO],
   },
   {
     id: '550e8400-e29b-41d4-a716-446655440001',
@@ -52,6 +61,7 @@ export const PROPERTIES: Property[] = [
     latitude: -26.5593843,
     longitude: -48.7587542,
     status: PropertyStatus.ACTIVE,
+    phases: [PropertyPhase.CRIA, PropertyPhase.RECRIA, PropertyPhase.ENGORDA],
     createdAt: '2024-01-15T10:00:00Z',
     pasturePlanning: [
       { month: 'January', precipitation: 4894.2, temperature: 24.9, state: 'Good' },
@@ -83,6 +93,7 @@ export const PROPERTIES: Property[] = [
     latitude: -22.2208,
     longitude: -54.8058,
     status: PropertyStatus.ACTIVE,
+    phases: [PropertyPhase.ENGORDA],
     createdAt: '2024-02-20T14:30:00Z',
     pasturePlanning: [
       { month: 'January', precipitation: 185.2, temperature: 26.8, state: 'Poor' },
@@ -114,6 +125,7 @@ export const PROPERTIES: Property[] = [
     latitude: -20.7845,
     longitude: -51.7147,
     status: PropertyStatus.ACTIVE,
+    phases: [PropertyPhase.CRIA, PropertyPhase.RECRIA],
     createdAt: '2024-03-10T09:15:00Z',
   },
   {
@@ -131,6 +143,7 @@ export const PROPERTIES: Property[] = [
     latitude: -22.5361,
     longitude: -55.7256,
     status: PropertyStatus.INACTIVE,
+    phases: [PropertyPhase.CICLO_COMPLETO],
     createdAt: '2023-11-05T16:45:00Z',
   },
   {
@@ -148,6 +161,7 @@ export const PROPERTIES: Property[] = [
     latitude: -19.0086,
     longitude: -57.6517,
     status: PropertyStatus.INACTIVE,
+    phases: [PropertyPhase.RECRIA],
     createdAt: '2023-12-12T11:20:00Z',
   },
   {
@@ -165,6 +179,7 @@ export const PROPERTIES: Property[] = [
     latitude: -20.4706,
     longitude: -55.7878,
     status: PropertyStatus.INACTIVE,
+    phases: [PropertyPhase.CRIA],
     createdAt: '2023-08-15T13:00:00Z',
     deletedAt: '2024-04-01T10:30:00Z',
   },
@@ -178,4 +193,11 @@ export const STATUS_INDICATORS = {
 export const STATUS_LABELS = {
   active: 'Ativo',
   inactive: 'Inativo',
+} as const;
+
+export const PHASE_LABELS = {
+  [PropertyPhase.CRIA]: 'Cria',
+  [PropertyPhase.RECRIA]: 'Recria',
+  [PropertyPhase.ENGORDA]: 'Engorda',
+  [PropertyPhase.CICLO_COMPLETO]: 'Ciclo Completo',
 } as const;

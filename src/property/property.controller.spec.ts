@@ -24,6 +24,7 @@ describe('PropertyController', () => {
     latitude: -26.5593843,
     longitude: -48.7587542,
     status: PropertyStatus.ACTIVE,
+    phases: ['cria', 'recria', 'engorda'],
     createdAt: '2024-01-15T10:00:00Z',
     deletedAt: null,
     pasturePlanning: [
@@ -169,6 +170,7 @@ describe('PropertyController', () => {
         latitude: -20.0,
         longitude: -50.0,
         status: PropertyStatus.ACTIVE,
+        phases: ['cria', 'recria'],
       };
 
       const mockUser = { userId: 'user-123' };

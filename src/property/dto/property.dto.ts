@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNumber, IsOptional, IsEnum, IsDateString, Min, Max, Length, Matches } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsEnum, IsDateString, Min, Max, Length, Matches, IsArray } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { PropertyStatus } from '../../mocks/properties';
+import { PropertyStatus, PropertyPhase } from '../../mocks/properties';
 
 export class PropertyDto {
   @ApiProperty({
@@ -78,6 +78,14 @@ export class PropertyDto {
     enum: ['Ativo', 'Inativo', 'Vendido', 'Alugado']
   })
   status: string;
+
+  @ApiProperty({
+    description: 'Fases da propriedade',
+    example: ['cria', 'recria', 'engorda'],
+    enum: ['cria', 'recria', 'engorda', 'ciclo_completo'],
+    isArray: true
+  })
+  phases: PropertyPhase[];
 
   @ApiProperty({
     description: 'Data de aquisição',
@@ -211,6 +219,19 @@ export class CreatePropertyDto {
     message: 'Status deve ser "active" ou "inactive"' 
   })
   status: PropertyStatus;
+
+  @ApiProperty({
+    description: 'Fases da propriedade',
+    example: ['cria', 'recria', 'engorda'],
+    enum: PropertyPhase,
+    isArray: true
+  })
+  @IsArray({ message: 'Fases deve ser um array' })
+  @IsEnum(PropertyPhase, { 
+    each: true,
+    message: 'Cada fase deve ser "cria", "recria", "engorda" ou "ciclo_completo"' 
+  })
+  phases: PropertyPhase[];
 
   @ApiProperty({
     description: 'Observações sobre a propriedade',
@@ -351,6 +372,21 @@ export class UpdatePropertyDto {
     message: 'Status deve ser "Ativo", "Inativo", "Vendido" ou "Alugado"' 
   })
   status?: string;
+
+  @ApiProperty({
+    description: 'Fases da propriedade',
+    example: ['cria', 'recria', 'engorda'],
+    enum: PropertyPhase,
+    isArray: true,
+    required: false
+  })
+  @IsOptional()
+  @IsArray({ message: 'Fases deve ser um array' })
+  @IsEnum(PropertyPhase, { 
+    each: true,
+    message: 'Cada fase deve ser "cria", "recria", "engorda" ou "ciclo_completo"' 
+  })
+  phases?: PropertyPhase[];
 
   @ApiProperty({
     description: 'Data de aquisição',

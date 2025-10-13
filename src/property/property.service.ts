@@ -167,7 +167,23 @@ export class PropertyService {
 
       // Build complete property data with all related information
       const propertyWithRelatedData = {
-        ...property,
+        id: property.id,
+        code: property.code,
+        name: property.name,
+        description: property.description,
+        street: property.street,
+        number: property.number,
+        neighborhood: property.neighborhood,
+        city: property.city,
+        state: property.state,
+        country: property.country,
+        zipCode: property.zipCode,
+        latitude: property.latitude,
+        longitude: property.longitude,
+        status: property.status,
+        phases: property.phases, // Explicitly include phases
+        createdAt: property.createdAt,
+        pasturePlanning: property.pasturePlanning,
         // Statistics
         statistics: {
           totalLocations: propertyLocations.length,
@@ -185,7 +201,7 @@ export class PropertyService {
         observations: propertyObservations,
         locationQualities: propertyLocationQualities,
       };
-      
+
       // Return the complete property data with all related information
       this.logger.log(`Property ${id} retrieved successfully with related data`, 'getPropertyById');
       return ResponseHelper.successSingle(propertyWithRelatedData, 'Property retrieved successfully');
@@ -218,6 +234,7 @@ export class PropertyService {
         latitude: createPropertyDto.latitude,
         longitude: createPropertyDto.longitude,
         status: createPropertyDto.status,
+        phases: createPropertyDto.phases,
         createdAt: new Date().toISOString(),
         deletedAt: null,
       };
