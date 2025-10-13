@@ -3,6 +3,7 @@ export interface ApiResponse<T> {
   data: T;
   count?: number;
   message?: string;
+  statusCode?: number;
 }
 
 export interface ApiErrorResponse {

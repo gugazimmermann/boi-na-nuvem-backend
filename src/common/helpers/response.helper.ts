@@ -26,4 +26,13 @@ export class ResponseHelper {
       message
     };
   }
+
+  static error<T>(message: string, statusCode?: number): ApiResponse<T> {
+    return {
+      success: false,
+      data: null as T,
+      message,
+      statusCode
+    };
+  }
 }

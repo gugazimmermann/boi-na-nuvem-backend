@@ -30,4 +30,7 @@ export default () => ({
     max: parseInt(process.env.CACHE_MAX || '100', 10), 
     enabled: process.env.CACHE_ENABLED === 'true' || true,
   },
+  openai: {
+    apiKey: process.env.OPENAI_API_KEY || '',
+  },
 });

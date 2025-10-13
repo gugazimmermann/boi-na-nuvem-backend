@@ -73,6 +73,17 @@ async function bootstrap() {
     .addTag('users', 'User management')
     .addTag('health', 'Health check endpoints')
     .addTag('metrics', 'Prometheus metrics endpoints')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter JWT token',
+        in: 'header',
+      },
+      'JWT-auth',
+    )
     .build();
   
   const document = SwaggerModule.createDocument(app, config);

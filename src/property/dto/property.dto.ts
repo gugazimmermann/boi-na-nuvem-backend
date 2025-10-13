@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNumber, IsOptional, IsEnum, IsDateString, Min, Max, Length, Matches } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { PropertyStatus } from '../../mocks/properties';
 
 export class PropertyDto {
   @ApiProperty({
@@ -89,10 +90,19 @@ export class PropertyDto {
     example: 'Propriedade com boa infraestrutura e acesso facilitado',
     required: false
   })
-  notes?: string;
+  description?: string;
 }
 
 export class CreatePropertyDto {
+  @ApiProperty({
+    description: 'Código único da propriedade',
+    example: 'FAZ-001'
+  })
+  @IsString({ message: 'Código deve ser uma string' })
+  @Length(2, 20, { message: 'Código deve ter entre 2 e 20 caracteres' })
+  @Transform(({ value }) => value?.trim())
+  code: string;
+
   @ApiProperty({
     description: 'Nome da propriedade',
     example: 'Fazenda São José'
@@ -102,24 +112,37 @@ export class CreatePropertyDto {
   @Transform(({ value }) => value?.trim())
   name: string;
 
-  @ApiProperty({
-    description: 'Área total da propriedade em hectares',
-    example: 100.5
-  })
-  @IsNumber({}, { message: 'Área total deve ser um número' })
-  @Min(0.1, { message: 'Área total deve ser maior que 0' })
-  @Max(100000, { message: 'Área total deve ser menor que 100.000 hectares' })
-  @Transform(({ value }) => parseFloat(value))
-  totalArea: number;
 
   @ApiProperty({
-    description: 'Endereço da propriedade',
-    example: 'Rodovia BR-163, Km 45, Zona Rural'
+    description: 'Rua da propriedade',
+    example: 'Rodovia BR-163'
   })
-  @IsString({ message: 'Endereço deve ser uma string' })
-  @Length(5, 200, { message: 'Endereço deve ter entre 5 e 200 caracteres' })
+  @IsString({ message: 'Rua deve ser uma string' })
+  @Length(2, 200, { message: 'Rua deve ter entre 2 e 200 caracteres' })
   @Transform(({ value }) => value?.trim())
-  address: string;
+  street: string;
+
+  @ApiProperty({
+    description: 'Número da propriedade',
+    example: 'Km 45',
+    required: false
+  })
+  @IsOptional()
+  @IsString({ message: 'Número deve ser uma string' })
+  @Length(1, 20, { message: 'Número deve ter entre 1 e 20 caracteres' })
+  @Transform(({ value }) => value?.trim())
+  number?: string;
+
+  @ApiProperty({
+    description: 'Bairro da propriedade',
+    example: 'Zona Rural',
+    required: false
+  })
+  @IsOptional()
+  @IsString({ message: 'Bairro deve ser uma string' })
+  @Length(2, 100, { message: 'Bairro deve ter entre 2 e 100 caracteres' })
+  @Transform(({ value }) => value?.trim())
+  neighborhood?: string;
 
   @ApiProperty({
     description: 'Cidade da propriedade',
@@ -138,6 +161,17 @@ export class CreatePropertyDto {
   @Length(2, 50, { message: 'Estado deve ter entre 2 e 50 caracteres' })
   @Transform(({ value }) => value?.trim())
   state: string;
+
+  @ApiProperty({
+    description: 'País da propriedade',
+    example: 'Brasil',
+    required: false
+  })
+  @IsOptional()
+  @IsString({ message: 'País deve ser uma string' })
+  @Length(2, 50, { message: 'País deve ter entre 2 e 50 caracteres' })
+  @Transform(({ value }) => value?.trim())
+  country?: string;
 
   @ApiProperty({
     description: 'CEP da propriedade',
@@ -169,31 +203,14 @@ export class CreatePropertyDto {
   longitude: number;
 
   @ApiProperty({
-    description: 'Tipo de propriedade',
-    example: 'Fazenda',
-    enum: ['Fazenda', 'Sítio', 'Chácara', 'Haras', 'Outro']
+    description: 'Status da propriedade',
+    example: 'active',
+    enum: PropertyStatus
   })
-  @IsEnum(['Fazenda', 'Sítio', 'Chácara', 'Haras', 'Outro'], { 
-    message: 'Tipo deve ser "Fazenda", "Sítio", "Chácara", "Haras" ou "Outro"' 
+  @IsEnum(PropertyStatus, { 
+    message: 'Status deve ser "active" ou "inactive"' 
   })
-  type: string;
-
-  @ApiProperty({
-    description: 'Atividade principal da propriedade',
-    example: 'Pecuária de Corte',
-    enum: ['Pecuária de Corte', 'Pecuária Leiteira', 'Agricultura', 'Misto', 'Outro']
-  })
-  @IsEnum(['Pecuária de Corte', 'Pecuária Leiteira', 'Agricultura', 'Misto', 'Outro'], { 
-    message: 'Atividade principal deve ser "Pecuária de Corte", "Pecuária Leiteira", "Agricultura", "Misto" ou "Outro"' 
-  })
-  mainActivity: string;
-
-  @ApiProperty({
-    description: 'Data de aquisição',
-    example: '2020-03-15'
-  })
-  @IsDateString({}, { message: 'Data de aquisição deve estar no formato ISO 8601' })
-  acquisitionDate: string;
+  status: PropertyStatus;
 
   @ApiProperty({
     description: 'Observações sobre a propriedade',
@@ -204,7 +221,7 @@ export class CreatePropertyDto {
   @IsString({ message: 'Observações devem ser uma string' })
   @Length(0, 500, { message: 'Observações devem ter no máximo 500 caracteres' })
   @Transform(({ value }) => value?.trim())
-  notes?: string;
+  description?: string;
 }
 
 export class UpdatePropertyDto {
@@ -353,5 +370,5 @@ export class UpdatePropertyDto {
   @IsString({ message: 'Observações devem ser uma string' })
   @Length(0, 500, { message: 'Observações devem ter no máximo 500 caracteres' })
   @Transform(({ value }) => value?.trim())
-  notes?: string;
+  description?: string;
 }

@@ -20,6 +20,7 @@ Backend API for farm and animal management, built with NestJS.
 - **Prometheus** - Metrics collection and monitoring
 - **Cache Manager** - In-memory caching for performance
 - **Date-fns** - Date manipulation utilities
+- **OpenAI** - AI-powered pasture planning and climate analysis
 - **Jest** - Unit and e2e testing framework with comprehensive mocking
 - **Supertest** - HTTP assertion library for API testing
 
@@ -85,6 +86,9 @@ JWT_SECRET=your-secret-key
 JWT_EXPIRES_IN=1d
 JWT_REFRESH_EXPIRES_IN=7d
 
+# OpenAI Configuration
+OPENAI_API_KEY=your-openai-api-key-here
+
 # App Configuration
 APP_TITLE=Boi na Nuvem Backend
 APP_VERSION=0.0.1
@@ -146,6 +150,7 @@ Interactive API documentation is available via Swagger:
 
 - `GET /plans` - List all available plans
 - `GET /properties` - Property management
+- `GET /property/climate/pasture-planning` - AI-powered pasture planning based on climate data
 - `GET /locations` - Location management
 - `GET /service-providers` - Service provider management
 - `GET /employees` - Employee management
@@ -235,6 +240,40 @@ The application includes a comprehensive authentication system:
 - **Email Validation**: Comprehensive email format validation
 - **Duplicate Prevention**: Prevents duplicate emails and documents
 - **Subscription Integration**: Login includes subscription and plan information
+
+## 🌱 AI-Powered Pasture Planning
+
+The application includes an intelligent pasture planning system powered by OpenAI:
+
+### Features
+- **Climate Data Integration**: Fetches historical climate data (temperature and precipitation) from Open-Meteo API
+- **AI Analysis**: Uses GPT-5 nano to analyze climate patterns and generate personalized recommendations
+- **Pasture Growth Classification**: Provides monthly pasture growth ratings (Good, Medium, Poor)
+- **Reproductive Calendar**: Generates annual breeding calendar with insemination, calving, and supplementation schedules
+- **Portuguese Language**: All recommendations are provided in Portuguese for Brazilian farmers
+- **Markdown Format**: Returns structured, easy-to-read planning documents
+
+### Usage
+```bash
+GET /property/climate/pasture-planning?lat=-23.5505&lon=-46.6333
+```
+
+### Response Format
+```json
+{
+  "planning": [
+    {"mes": "Janeiro", "estado": "Bom"},
+    {"mes": "Fevereiro", "estado": "Bom"},
+    {"mes": "Março", "estado": "Bom"},
+    {"mes": "Abril", "estado": "Médio"}
+  ]
+}
+```
+
+### Requirements
+- Valid OpenAI API key configured in `OPENAI_API_KEY` environment variable
+- Latitude and longitude coordinates for the property location
+- Internet connection for climate data and AI processing
 
 ## 📧 Email Service
 
